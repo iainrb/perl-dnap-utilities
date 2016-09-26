@@ -9,7 +9,7 @@ use Log::Log4perl;
 use Log::Log4perl::Level;
 
 use base 'Exporter';
-our @EXPORT_OK = qw(log_init);
+our @EXPORT_OK = qw(log_init most_verbose);
 
 our $VERSION = '';
 

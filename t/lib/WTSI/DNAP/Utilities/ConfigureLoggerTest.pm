@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use base qw(Test::Class);
-use Test::More tests => 4;
+use Test::More tests => 11;
 use Test::Exception;
 use Log::Log4perl;
 use Log::Log4perl::Level;
@@ -12,11 +12,13 @@ use File::Temp qw/tempdir/;
 
 BEGIN { use_ok('WTSI::DNAP::Utilities::ConfigureLogger'); }
 
-use WTSI::DNAP::Utilities::ConfigureLogger qw/log_init/;
+use WTSI::DNAP::Utilities::ConfigureLogger qw/most_verbose/;
 
 Log::Log4perl::init('./etc/log4perl_tests.conf');
 
 my $log = Log::Log4perl->get_logger('main');
+my $info_string = 'Testing log info output';
+my $debug_string = 'Testing log debug output';
 
 # Note: Calling Log::Log4perl->init will clobber any existing log config
 # and substitute the new one. As a workaround, some tests are run by
@@ -48,48 +50,40 @@ sub init_from_config_file : Test(3) {
                        $config_path, "': $!");
 
     my $cmd = "$log_script --config $config_path 2> /dev/null";
+
     ok(system($cmd)==0, "Command '$cmd' exit status OK");
 
-    my $info_string = 'Testing log info output';
     ok(system("grep '$info_string' $log_path > /dev/null") == 0,
        'Info output found');
 
-    my $debug_string = 'Testing log debug output';
     ok(system("grep '$debug_string' $log_path > /dev/null") != 0,
        'Debug output not found at info level');
 }
 
-# sub init_from_output_path : Test(4) {
-#     # configure with output file path
-#     my $tmp = tempdir('ConfigureLoggerTest_XXXXXX', CLEANUP => 1);
-#     my $log_path = $tmp."/init_from_output_path.log";
-#     my $levels = [$WARN, $INFO, ];
-#     try {
-#         # this try block *disables* logging to the default tests.log
-#         ok(log_init(undef, $log_path, $levels),
-#            "Logging initialised with output path");
-#         my $log = Log::Log4perl->get_logger('main');
-#         my $info_string = "Testing output to custom log file, level INFO";
-#         do {
-#             # suppress log message to STDERR
-#             local *STDERR;
-#             open (STDERR, '>>', '/dev/null');
-#             $log->info($info_string);
-#         };
-#         ok(-e $log_path, "Custom log file written");
-#         ok(system("grep '$info_string' $log_path > /dev/null") == 0,
-#            'Info output found');
-#         my $debug_string = "Testing log debug output";
-#         $log->debug($debug_string);
-#         ok(system("grep '$debug_string' $log_path > /dev/null") != 0,
-#            'Debug output not found at info level');
-#     } catch {
-#      #   Log::Log4perl::init($DEFAULT_LOG4PERL_CONF);
-#       #  my $log = Log::Log4perl->get_logger('main');
-#        # $log->error("Error testing log config: $_");
-#     };
-#     # revert to default log config after success
-#     #Log::Log4perl::init($DEFAULT_LOG4PERL_CONF);
-# }
+sub init_from_output_path : Test(3) {
+    # configure with output file path
+    my $tmp = tempdir('ConfigureLoggerTest_XXXXXX', CLEANUP => 1);
+    my $log_path = $tmp."/init_from_output_path.log";
+
+    my $cmd = "$log_script --output $log_path --verbose 2> /dev/null";
+    ok(system($cmd)==0, "Command '$cmd' exit status OK");
+
+    ok(system("grep '$info_string' $log_path > /dev/null") == 0,
+       'Info output found');
+
+    ok(system("grep '$debug_string' $log_path > /dev/null") != 0,
+       'Debug output not found at info level');
+ }
+
+sub verbosity : Test(4) {
+    my @levels = ($DEBUG, $INFO, $WARN);
+    ok(most_verbose(\@levels) == $DEBUG, 'Most verbose is DEBUG');
+    shift @levels;
+    ok(most_verbose(\@levels) == $INFO, 'Most verbose is INFO');
+    push @levels, $TRACE;
+    ok(most_verbose(\@levels) == $TRACE, 'Most verbose is TRACE');
+    ok(most_verbose([]) == $ERROR, 'Default verbosity is ERROR');
+}
+
 
 1;
