@@ -21,12 +21,9 @@ our $VERSION = '';
 
   Example    : log_init($config, $logfile, $log_levels);
 
-  Description: Initializes logging with Log4perl. Uses either the
-               configuration in a given log4perl config file; or a
-               default configuration, with the given output file and
-               verbosity settings.
+  Description: Initializes logging with Log4perl.
 
-               Must supply either a log4perl config, or
+               Must supply either a log4perl config file path; or
                an output path. If the first argument is defined, the
                second and third arguments are ignored; otherwise,
                the second and third arguments are used.
@@ -77,13 +74,14 @@ sub log_init {
 
 =head2 most_verbose
 
-  Arg [1]    : [ArrayRef[Int]] Log4perl levels
+  Arg [1]    : Maybe [ArrayRef[Int]] Log4perl levels
 
   Example    : $log_level = most_verbose($log_levels);
 
   Description: Takes an ArrayRef of zero or more numeric Log4Perl level
-               constants. Returns the most verbose level input, if any;
-               or a default value otherwise.
+               constants. Returns the most verbose level input, if any. If
+               the input ArrayRef is empty or undefined, a default level
+               is returned.
 
   Returntype : [Int] Log4perl level constant
 

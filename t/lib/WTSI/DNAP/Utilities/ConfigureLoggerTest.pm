@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use base qw(Test::Class);
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Test::Exception;
 use Log::Log4perl;
 use Log::Log4perl::Level;
@@ -20,9 +20,8 @@ my $log = Log::Log4perl->get_logger('main');
 my $info_string = 'Testing log info output';
 my $debug_string = 'Testing log debug output';
 
-# Note: Calling Log::Log4perl->init will clobber any existing log config
-# and substitute the new one. As a workaround, some tests are run by
-# calling a command-line script.
+# Note: Log::Log4perl is not designed to be initialized more than once.
+# As a workaround, some tests are run by calling a command-line script.
 
 my $log_script = './t/bin/test_log_config.pl';
 
@@ -75,14 +74,22 @@ sub init_from_output_path : Test(3) {
        'Debug output not found at info level');
  }
 
-sub verbosity : Test(4) {
+sub verbosity : Test(5) {
     my @levels = ($DEBUG, $INFO, $WARN);
     ok(most_verbose(\@levels) == $DEBUG, 'Most verbose is DEBUG');
     shift @levels;
     ok(most_verbose(\@levels) == $INFO, 'Most verbose is INFO');
     push @levels, $TRACE;
     ok(most_verbose(\@levels) == $TRACE, 'Most verbose is TRACE');
-    ok(most_verbose([]) == $ERROR, 'Default verbosity is ERROR');
+    ok(most_verbose() == $ERROR, 'Default verbosity is ERROR');
+    # test with illegal string input, suppressing warnings to STDERR
+    my $bad_input_verbosity;
+    do {
+        local *STDERR;
+        open (STDERR, '>', '/dev/null');
+        $bad_input_verbosity = most_verbose(['debug']);
+    };
+    ok($bad_input_verbosity == $ERROR, 'Verbosity with bad input is ERROR');
 }
 
 

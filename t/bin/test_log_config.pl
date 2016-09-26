@@ -8,13 +8,9 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Log::Log4perl::Level;
-use Try::Tiny;
 use WTSI::DNAP::Utilities::ConfigureLogger qw/log_init/;
 
 our $VERSION = '';
-
-# Script to test log configuration.
-# Sidesteps problems with initialising log4perl more than once.
 
 run() unless caller();
 
