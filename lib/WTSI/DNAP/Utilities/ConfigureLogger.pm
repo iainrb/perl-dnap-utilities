@@ -1,6 +1,6 @@
-use utf8;
+package WTSI::DNAP::Utilities::ConfigureLogger;
 
-package WTSI::NPG::Utilities::ConfigureLogger;
+use utf8;
 
 use strict;
 use warnings;
@@ -44,11 +44,12 @@ our $VERSION = '';
 
 sub log_init {
     my ($log4perl_config, $log_path, $log_levels) = @_;
-    my $level = most_verbose($log_levels);
-    if (defined($log4perl_config) && ! -r $log4perl_config) {
-        croak("Cannot read log4perl config path '", $log4perl_config,
-              "': $!");
-    } elsif (! defined($log_path)) {
+    if (defined $log4perl_config ) {
+        if (! -r $log4perl_config) {
+            croak("Cannot read log4perl config path '", $log4perl_config,
+                  "': $!");
+        }
+    } elsif (! defined $log_path ) {
         croak("Must supply either a log4perl config path, ",
               "or an output path: $!");
     }
@@ -68,8 +69,9 @@ sub log_init {
                     );
         Log::Log4perl->easy_init(@log_args);
     }
-    Log::Log4perl->initialized() ||
-          croak("Failed to initialize Log4perl: $!");
+    my $init_ok = Log::Log4perl->initialized();
+    $init_ok || croak("Failed to initialize Log4perl: $!");
+    return $init_ok;
 }
 
 
@@ -106,7 +108,7 @@ sub most_verbose {
         $all_levels{$level} = 1;
     }
     foreach my $level (@{$levels}) {
-        unless ($all_levels{$level}) {
+        if (! $all_levels{$level}) {
             carp("Input value '", $level, "' is not a Log4perl numeric ",
                  "level constant, and will be ignored");
         }
@@ -121,16 +123,18 @@ sub most_verbose {
             last;
         }
     }
-    unless (defined($logging_level)) { $logging_level = $ERROR; }
+    if (! defined $logging_level ) { $logging_level = $ERROR; }
     return $logging_level;
 }
+
+1;
 
 
 __END__
 
 =head1 NAME
 
-ConfigureLogger
+WTSI::DNAP::Utilities::ConfigureLogger
 
 =head1 DESCRIPTION
 
