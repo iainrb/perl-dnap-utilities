@@ -92,37 +92,42 @@ sub log_init {
 sub most_verbose {
     my ($levels, ) = @_;
     # array of constants from Log4perl::Level
-    my @levels_by_descending_verbosity = ($ALL,
-                                          $TRACE,
-                                          $DEBUG,
-                                          $INFO,
-                                          $WARN,
-                                          $ERROR,
-                                          $FATAL,
-                                          $OFF);
+    my @all_levels = ($ALL,
+                      $TRACE,
+                      $DEBUG,
+                      $INFO,
+                      $WARN,
+                      $ERROR,
+                      $FATAL,
+                      $OFF);
     # warn if the input contains unexpected values
     my %all_levels;
-    foreach my $level (@levels_by_descending_verbosity) {
-        $all_levels{$level} = 1;
-    }
+    foreach my $level (@all_levels) { $all_levels{$level} = 1; }
+    my @valid_levels;
     foreach my $level (@{$levels}) {
-        if (! $all_levels{$level}) {
+        if (defined $all_levels{$level}) {
+            push @valid_levels, $level;
+        } else {
             carp("Input value '", $level, "' is not a Log4perl numeric ",
                  "level constant, and will be ignored");
         }
     }
     # find and return the most verbose level given, or a default
-    my %input_levels;
-    my $logging_level;
-    foreach my $level (@$levels) { $input_levels{$level} = 1; }
-    foreach my $level (@levels_by_descending_verbosity) {
-        if ($input_levels{$level}) {
-            $logging_level = $level;
-            last;
-        }
-    }
+    my @sorted_levels = sort _by_descending_verbosity @valid_levels;
+    my $logging_level = shift @sorted_levels;
     if (! defined $logging_level ) { $logging_level = $ERROR; }
     return $logging_level;
+}
+
+sub _by_descending_verbosity {
+    # comparison function for Log4perl level sort, used in most_verbose
+    if ($a == $b) {
+        return  0;
+    } elsif (Log::Log4perl::Level::isGreaterOrEqual($a, $b)) {
+        return -1; # $a > $b
+    } else {
+        return  1; # $a < $b
+    }
 }
 
 1;
