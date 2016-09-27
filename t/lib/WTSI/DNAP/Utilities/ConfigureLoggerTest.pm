@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use base qw(Test::Class);
-use Test::More tests => 12;
+use Test::More tests => 14;
 use Test::Exception;
 use Log::Log4perl;
 use Log::Log4perl::Level;
@@ -25,7 +25,7 @@ my $debug_string = 'Testing log debug output';
 
 my $log_script = './t/bin/test_log_config.pl';
 
-sub init_from_config_file : Test(3) {
+sub init_from_config_file : Test(4) {
 
     # configure from log4perl config file
     my $tmp = tempdir('ConfigureLoggerTest_XXXXXX', CLEANUP => 1);
@@ -51,6 +51,8 @@ sub init_from_config_file : Test(3) {
     my $cmd = "$log_script --config $config_path 2> /dev/null";
     ok(system($cmd)==0, "Command '$cmd' exit status OK");
 
+    ok(-e $log_path, "Log path '$log_path' found");
+
     ok(system("grep '$info_string' $log_path > /dev/null") == 0,
        'Info output found');
 
@@ -58,13 +60,15 @@ sub init_from_config_file : Test(3) {
        'Debug output not found at info level');
 }
 
-sub init_from_output_path : Test(3) {
+sub init_from_output_path : Test(4) {
     # configure with output file path
     my $tmp = tempdir('ConfigureLoggerTest_XXXXXX', CLEANUP => 1);
     my $log_path = $tmp."/init_from_output_path.log";
 
     my $cmd = "$log_script --output $log_path --verbose 2> /dev/null";
     ok(system($cmd)==0, "Command '$cmd' exit status OK");
+
+    ok(-e $log_path, "Log path '$log_path' found");
 
     ok(system("grep '$info_string' $log_path > /dev/null") == 0,
        'Info output found');
