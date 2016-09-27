@@ -13,6 +13,8 @@ our @EXPORT_OK = qw(log_init most_verbose);
 
 our $VERSION = '';
 
+our $DEFAULT_LOG_LEVEL = $ERROR;
+
 =head2 log_init
 
   Arg [1]    : Maybe [Str] path to Log4perl config file
@@ -115,7 +117,7 @@ sub most_verbose {
     # find and return the most verbose level given, or a default
     my @sorted_levels = sort _by_descending_verbosity @valid_levels;
     my $logging_level = shift @sorted_levels;
-    if (! defined $logging_level ) { $logging_level = $ERROR; }
+    if (! defined $logging_level ) { $logging_level = $DEFAULT_LOG_LEVEL; }
     return $logging_level;
 }
 
